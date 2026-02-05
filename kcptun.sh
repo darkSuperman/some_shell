@@ -1,18 +1,5 @@
 #!/bin/sh
 
-: <<-'EOF'
-Copyright 2017-2019 Xingwang Liao <kuoruan@gmail.com>
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-	http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-EOF
-
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # 版本信息，请勿修改
@@ -83,18 +70,6 @@ current_instance_id=""
 run_user='kcptun'
 
 clear
-
-cat >&1 <<-'EOF'
-#########################################################
-# Kcptun 服务端一键安装脚本                             #
-# 该脚本支持 Kcptun 服务端的安装、更新、卸载及配置      #
-# 脚本作者: Index <kuoruan@gmail.com>                   #
-# 作者博客: https://blog.kuoruan.com/                   #
-# Github: https://github.com/kuoruan/shell-scripts      #
-# QQ交流群: 43391448, 68133628                          #
-#           633945405                                   #
-#########################################################
-EOF
 
 # 打印帮助信息
 usage() {
@@ -522,65 +497,6 @@ get_instance_count() {
 # 通过 API 获取对应版本号 Kcptun 的 release 信息
 # 传入 Kcptun 版本号
 get_kcptun_version_info() {
-	local request_version="$1"
-
-	local version_content=""
-	if [ -n "$request_version" ]; then
-		local json_content=""
-		json_content="$(get_content "$KCPTUN_RELEASES_URL")"
-		local version_selector=".[] | select(.tag_name == \"${request_version}\")"
-		version_content="$(get_json_string "$json_content" "$version_selector")"
-	else
-		version_content="$(get_content "$KCPTUN_LATEST_RELEASE_URL")"
-	fi
-
-	if [ -z "$version_content" ]; then
-		return 1
-	fi
-
-	if [ -z "$spruce_type" ]; then
-		get_arch
-	fi
-
-	local url_selector=".assets[] | select(.name | contains(\"${spruce_type}\")) | .browser_download_url"
-	kcptun_release_download_url="$(get_json_string "$version_content" "$url_selector")"
-
-	if [ -z "$kcptun_release_download_url" ]; then
-		return 1
-	fi
-
-	kcptun_release_tag_name="$(get_json_string "$version_content" '.tag_name')"
-	kcptun_release_name="$(get_json_string "$version_content" '.name')"
-	kcptun_release_prerelease="$(get_json_string "$version_content" '.prerelease')"
-	kcptun_release_publish_time="$(get_json_string "$version_content" '.published_at')"
-	kcptun_release_html_url="$(get_json_string "$version_content" '.html_url')"
-
-	local body_content="$(get_json_string "$version_content" '.body')"
-	local body="$(echo "$body_content" | sed 's/#br#/\n/g' | grep -vE '(^```)|(^>)|(^[[:space:]]*$)|(SUM$)')"
-
-	kcptun_release_body="$(echo "$body" | grep -vE "[0-9a-zA-Z]{32,}")"
-
-	local file_verify=""
-	file_verify="$(echo "$body" | grep "$spruce_type")"
-
-	if [ -n "$file_verify" ]; then
-		local i="1"
-		local split=""
-		while true
-		do
-			split="$(echo "$file_verify" | cut -d ' ' -f$i)"
-
-			if [ -n "$split" ] && ( echo "$split" | grep -qE "^[0-9a-zA-Z]{32,}$" ); then
-				kcptun_release_verify="$split"
-				break
-			elif [ -z "$split" ]; then
-				break
-			fi
-
-			i=$(expr $i + 1)
-		done
-	fi
-
 	return 0
 }
 
@@ -617,18 +533,11 @@ get_shell_version_info() {
 
 # 下载并安装 Kcptun
 install_kcptun() {
-	if [ -z "$kcptun_release_download_url" ]; then
-		get_kcptun_version_info "$1"
-
-		if [ "$?" != "0" ]; then
-			cat >&2 <<-'EOF'
-			获取 Kcptun 版本信息或下载地址失败!
-			可能是 GitHub 改版，或者从网络获取到的内容不正确。
-			请联系脚本作者。
-			EOF
-			exit 1
-		fi
-	fi
+    kcptun_release_download_url="https://github.com/darkSuperman/some_shell/releases/download/kcp/kcptun_amd64.tar.gz"
+	kcptun_release_tag_name="v20241227"
+	kcptun_release_verify="" # 留空跳过校验
+	
+	echo "正在从自定义仓库下载 Kcptun..."
 
 	local kcptun_file_name="kcptun-${kcptun_release_tag_name}.tar.gz"
 	download_file "$kcptun_release_download_url" "$kcptun_file_name" "$kcptun_release_verify"
