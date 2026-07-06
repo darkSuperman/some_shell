@@ -78,7 +78,7 @@ PASSWORD=$(tr -dc 'A-Za-z0-9!@#%^*()_+' < /dev/urandom | head -c 16)
 echo "生成配置文件..."
 cat <<EOF > /etc/shadowsocks-rust/config.json
 {
-    "server": "0.0.0.0",
+    "server": "127.0.0.1",
     "server_port": ${PORT},
     "password": "${PASSWORD}",
     "method": "aes-128-gcm",
