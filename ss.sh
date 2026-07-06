@@ -7,6 +7,20 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo "=========================================="
+echo "      0. 正在检测并安装系统基础依赖...    "
+echo "=========================================="
+
+# 检测并自动安装 Debian/Ubuntu 系统的基础依赖包
+if command -v apt-get >/dev/null 2>&1; then
+    echo "检测到 apt 软件包管理器，开始更新源并安装依赖..."
+    apt-get update
+    apt-get install -y iptables curl wget xz-utils tar
+else
+    echo "提示：未检测到 apt-get（可能非 Debian/Ubuntu 系统），跳过自动安装。"
+    echo "请确保您的系统中已手动安装了：iptables, curl, wget, xz(xz-utils) 和 tar。"
+fi
+
+echo "=========================================="
 echo "      1. 开始配置系统环境与 BBR 加速...    "
 echo "=========================================="
 
@@ -141,9 +155,10 @@ echo " 密码 (Password)        : ${PASSWORD}"
 echo " 加密方式 (Method)      : aes-128-gcm"
 echo "=========================================="
 echo " 提示："
-echo "   1. BBR 加速配置已应用。"
-echo "   2. BT/PT/SPAM 恶意流量及对应端口已自动通过 iptables 封禁。"
-echo "   3. 本机 iptables 已自动放行 Shadowsocks 端口 ${PORT}。"
-echo "   4. 如您使用了云服务器厂商的服务（如腾讯云、阿里云等），"
+echo "   1. 基础系统依赖包（iptables, curl, wget, xz-utils, tar）已完成检测并补充安装。"
+echo "   2. BBR 加速配置已应用。"
+echo "   3. BT/PT/SPAM 恶意流量及对应端口已自动通过 iptables 封禁。"
+echo "   4. 本机 iptables 已自动放行 Shadowsocks 端口 ${PORT}。"
+echo "   5. 如您使用了云服务器厂商的服务（如腾讯云、阿里云等），"
 echo "      请记得在云控制台的安全组/防火墙规则中，手动开放外网 TCP 和 UDP 的端口 ${PORT}。"
 echo ""
